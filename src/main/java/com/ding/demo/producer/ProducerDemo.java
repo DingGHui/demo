@@ -1,10 +1,13 @@
 package com.ding.demo.producer;
 
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.Cluster;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.Utils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -93,4 +96,19 @@ public class ProducerDemo {
         }
     }
 
+
+/*    public class OffsetRebalance implements ConsumerRebalanceListener{
+        // 伪代码：当消费者退出时执行，保存当前消费的offset入数据库
+        @Override
+        public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+            saveOffsetToDB();
+        }
+        // 伪代码：当消费者加入时执行,从数据库获取partition的offset
+        @Override
+        public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+            for (TopicPartition partition : partitions) {
+                consumer.seek(partition,getOffsetFromDB(partition));
+            }
+        }
+    }*/
 }
