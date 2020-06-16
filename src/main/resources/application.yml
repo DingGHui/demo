@@ -1,0 +1,10 @@
+spring:
+  redis:
+    host: 47.97.197.28
+    port: 6379
+    database: 1
+    password: jiamian
+    timeout: 1800000
+
+
+
