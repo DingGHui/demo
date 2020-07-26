@@ -68,7 +68,8 @@ public class SpiderUtil {
             return Resp.error("文章获取失败，请检查链接是否正确");
         }
         // 解析
-        Resp<JSONObject> acticleResp = getWxActicleContent(resp, url);
+//        Resp<JSONObject> acticleResp = getWxActicleContent(resp, url);
+        Resp<JSONObject> acticleResp = parseArticle(resp, url);
         if (acticleResp.isError()) {
             return Resp.error(acticleResp.getMsg());
         }
@@ -126,8 +127,10 @@ public class SpiderUtil {
 
             String html = content.html();
 //            System.out.println(html);
+            System.out.println("===================");
             String s = HtmlUtil.unwrapHtmlTag(html, "div", "section", "span", "br", "button", "strong","textarea","script","ul","p","em");
-            System.out.println(s);
+//            System.out.println(s);
+            System.out.println("===================");
 
             JSONObject json = new JSONObject(new LinkedHashMap<>());
             json.put(KEY_TITLE, title);
@@ -138,19 +141,17 @@ public class SpiderUtil {
             Elements sections = content.select("*");
 
 
-
             StringBuilder stringBuilder = new StringBuilder();
             for (Element element : sections) {
                 if (element.children().isEmpty()) {
                     ArrayList<String> strings = new ArrayList<>();
 //                    parseContent(element,tags,stringBuilder);
+                    String src = "";
                     if(element.tag().getName().equals("img")){
                         Attributes attributes = element.attributes();
                         for (Attribute attribute : attributes) {
                             if(attribute.getKey().equalsIgnoreCase("data-src")){
-//                                element.removeAttr("data-src");
-                                strings.add("data-src");
-                                element.attr("src","xxx");
+                                Element xxx = element.attr("data-src", "xxx");
                             }else {
 //                                element.removeAttr(attribute.getKey());
                                 strings.add(attribute.getKey());
@@ -171,6 +172,74 @@ public class SpiderUtil {
             return Resp.error("文章解析失败");
         }
     }
+
+
+    /**
+     * 解析微信公众号文章
+     *
+     * @param resp 请求文章响应
+     * @param url  文章链接
+     * @return 文章信息
+     */
+    public static Resp<JSONObject> parseArticle(String resp, String url) {
+        try {
+            Document document = Jsoup.parse(resp);
+            // 文章出处（作者）
+            String referName = document.getElementsByClass("profile_nickname").get(0).text();
+            // 文章封面图链接
+            String coverUrl = document.select("meta[property=\"og:image\"]").get(0).attr("content");
+            // 文章标题
+            String title = document.getElementById("activity-name").text();
+            // 文章内容
+            Element content = document.getElementsByClass("rich_media_area_primary_inner").get(0);
+
+
+            JSONObject json = new JSONObject(new LinkedHashMap<>());
+            json.put(KEY_TITLE, title);
+            json.put(KEY_COVER_URL, coverUrl);
+            json.put(KEY_REFER_NAME, referName);
+            json.put(KEY_REFER_URL, url);
+            JSONArray tags = new JSONArray();
+            Elements sections = content.select("*");
+
+            for (Element element : sections) {
+                if (element.children().isEmpty()) {
+                    ArrayList<String> strings = new ArrayList<>();
+                    if(element.tag().getName().equals("img")){
+                        Attributes attributes = element.attributes();
+                        for (Attribute attribute : attributes) {
+                            if(attribute.getKey().equalsIgnoreCase("data-src")){
+                                element.attr("data-src", element.attr("data-src"));
+                                //TODO
+//                                处理 图片链接
+                            }else {
+                                strings.add(attribute.getKey());
+                            }
+                        }
+                    }
+                    // 不能一边遍历， 一边删除， 只能记录删除
+                    for (String string : strings) {
+                        element.removeAttr(string);
+                    }
+                }
+            }
+
+            String html = content.html();
+//            System.out.println(html);
+            System.out.println("===================");
+            String s = HtmlUtil.unwrapHtmlTag(html,"mpcpc","a","h4", "div", "section", "span", "br", "button", "strong","textarea","script","ul","p","em")
+                    .replace("&nbsp;"," ");
+            System.out.println(s);
+            System.out.println("===================");
+
+            json.put(KEY_TAGS, tags);
+            return Resp.success(json);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Resp.error("文章解析失败");
+        }
+    }
+
 
     public static void getChildTag(Element element, JSONArray tags) {
         JSONObject tag = new JSONObject(new LinkedHashMap<>());
