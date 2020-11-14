@@ -1,21 +1,23 @@
 package com.ding.demo.rpc.server;
 
-import com.ding.demo.rpc.HelloServiceImpl;
+import com.ding.demo.rpc.provider.impl.HelloServiceImpl;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import org.junit.platform.commons.util.StringUtils;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.springframework.util.ObjectUtils;
 
-public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
-
-
-
+public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    protected synchronized void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-        if (StringUtils.isNotBlank(msg) && msg.startsWith("helloService")) {
-            String result = new HelloServiceImpl().hello(msg);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("====服务器接收的 msg : " + msg + "====");
+        if (!ObjectUtils.isEmpty(msg) && msg.toString().startsWith("helloService")) {
+            String result = new HelloServiceImpl().hello(msg.toString());
             ctx.writeAndFlush(result);
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println("==== 异常 ==== " + cause.getMessage());
+    }
 }

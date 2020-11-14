@@ -1,11 +1,14 @@
 package com.ding.demo.rpc.client;
 
+import com.ding.demo.constant.DemoConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
@@ -16,11 +19,12 @@ import java.util.concurrent.Executors;
 public class NettyClient {
 
     private static ClientHandler clientHandler;
-    private static ExecutorService executorService = Executors.newFixedThreadPool(8);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public Object getBean(final Class serviceClass, final String providerName) {
         return Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[]{serviceClass}, ((proxy, method, args) -> {
+                    System.out.println("===== proxy ====");
                     if (clientHandler == null) {
                         initClient();
                     }
@@ -35,6 +39,8 @@ public class NettyClient {
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(gr)
+                    .channel(NioSocketChannel.class)
+                    .option(ChannelOption.TCP_NODELAY, true)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
@@ -44,9 +50,9 @@ public class NettyClient {
                             pipeline.addLast(clientHandler);
                         }
                     });
-            ChannelFuture sync = bootstrap.connect("127.0.0.1", 9999).sync();
+            ChannelFuture sync = bootstrap.connect(DemoConstant.hostName, DemoConstant.port).sync();
             sync.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             gr.shutdownGracefully();

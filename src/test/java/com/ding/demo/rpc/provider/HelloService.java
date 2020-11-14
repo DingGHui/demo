@@ -1,4 +1,4 @@
-package com.ding.demo.rpc;
+package com.ding.demo.rpc.provider;
 
 public interface HelloService {
 
