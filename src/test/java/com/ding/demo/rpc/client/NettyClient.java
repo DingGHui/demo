@@ -29,7 +29,7 @@ public class NettyClient {
                         initClient();
                     }
                     clientHandler.setParam(providerName + args[0]);
-                    return executorService.submit(clientHandler);
+                    return executorService.submit(clientHandler).get();
                 }));
     }
 
@@ -50,8 +50,8 @@ public class NettyClient {
                             pipeline.addLast(clientHandler);
                         }
                     });
-            ChannelFuture sync = bootstrap.connect(DemoConstant.hostName, DemoConstant.port).sync();
-            sync.channel().closeFuture().sync();
+            bootstrap.connect(DemoConstant.hostName, DemoConstant.port).sync();
+//            sync.channel().closeFuture().sync();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

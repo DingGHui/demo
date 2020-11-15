@@ -41,12 +41,11 @@ public class ClientHandler extends ChannelInboundHandlerAdapter implements Calla
             System.out.println("===== 开始调用远程,param: =====" + param);
             context.writeAndFlush(param);
             wait();
-            return result;
+
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
-        } finally {
-            System.out.println("一场发生了");
         }
+        return result;
     }
 }
