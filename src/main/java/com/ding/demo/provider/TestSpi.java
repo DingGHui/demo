@@ -1,4 +1,4 @@
-package com.ding.demo;
+package com.ding.demo.provider;
 
 import com.ding.demo.provider.SPIService;
 import sun.misc.Service;
