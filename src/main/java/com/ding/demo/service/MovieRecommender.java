@@ -21,8 +21,7 @@ import java.util.List;
 
 @Component @Slf4j public class MovieRecommender {
 	private final static int NEIGHBORHOOD_NUM = 3;
-	@Resource(name = "mySQLDataModel")
-    private DataModel dataModel;
+	@Resource(name = "mySQLDataModel") private DataModel dataModel;
 
 	private List<Long> getRecommendedItemIDs(
 			List<RecommendedItem> recommendations) {
@@ -34,12 +33,13 @@ import java.util.List;
 		return recommendItems;
 	}
 
-	// 基于用户的推荐算法
 	public List<Long> userBasedRecommender(long userID, int size)
 			throws TasteException {
 		UserSimilarity similarity = new EuclideanDistanceSimilarity(dataModel);
+
 		NearestNUserNeighborhood neighbor = new NearestNUserNeighborhood(
 				NEIGHBORHOOD_NUM, similarity, dataModel);
+
 		Recommender recommender = new CachingRecommender(
 				new GenericUserBasedRecommender(dataModel, neighbor,
 						similarity));
@@ -48,7 +48,6 @@ import java.util.List;
 		return getRecommendedItemIDs(recommendations);
 	}
 
-	// 基于内容的推荐算法
 	public List<Long> itemBasedRecommender(long userID, int size)
 			throws TasteException {
 		ItemSimilarity itemSimilarity = new PearsonCorrelationSimilarity(
